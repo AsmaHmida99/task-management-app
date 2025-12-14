@@ -1,0 +1,353 @@
+/* Conteneur principal */
+.signup-container {
+  position: relative;
+  min-height: 100vh;
+  background-color: var(--color-background);
+  overflow: hidden;
+}
+
+/* Arrière-plan */
+.signup-background {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom right, rgba(139, 92, 246, 0.1), var(--color-background), rgba(59, 130, 246, 0.1));
+}
+
+.signup-background-effects {
+  position: absolute;
+  inset: 0;
+}
+
+.signup-blur-circle {
+  position: absolute;
+  width: 24rem;
+  height: 24rem;
+  border-radius: 50%;
+  filter: blur(64px);
+  animation: pulse 3s ease-in-out infinite;
+}
+
+.signup-blur-top {
+  top: 0;
+  left: 25%;
+  background-color: rgba(139, 92, 246, 0.2);
+}
+
+.signup-blur-bottom {
+  bottom: 0;
+  right: 25%;
+  background-color: rgba(59, 130, 246, 0.2);
+  animation-delay: 1s;
+}
+
+/* Contenu */
+.signup-content {
+  position: relative;
+  z-index: 10;
+  min-height: calc(100vh - 64px); /* hauteur moins le header */
+  display: flex;
+  align-items: center;      /* CENTRAGE VERTICAL */
+  justify-content: center;  /* CENTRAGE HORIZONTAL */
+  padding: 2rem 1rem;
+}
+
+.signup-grid {
+  display: grid;
+  align-items: center;
+  gap: 3rem;
+}
+
+@media (min-width: 1024px) {
+  .signup-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Illustration (gauche) */
+.signup-illustration {
+  display: none;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+@media (min-width: 1024px) {
+  .signup-illustration {
+    display: flex;
+  }
+}
+
+.illustration-wrapper {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1rem;
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  background: linear-gradient(to bottom right, rgba(139, 92, 246, 0.1), rgba(59, 130, 246, 0.1));
+  padding: 0.5rem;
+  box-shadow: 0 25px 50px -12px rgba(139, 92, 246, 0.2);
+}
+
+.illustration-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 0.75rem;
+}
+
+.illustration-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.illustration-title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  background: linear-gradient(to right, #7c3aed, #2563eb);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.illustration-description {
+  font-size: 1.125rem;
+  color: var(--color-muted-foreground);
+  line-height: 1.75;
+}
+
+/* Formulaire (droite) */
+.signup-form-wrapper {
+  width: 100%;
+  max-width: 28rem;
+  margin: 0 auto;
+}
+
+/* Card */
+.signup-card {
+  border-radius: 1rem;
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  background-color: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  padding: 2rem;
+  box-shadow: 0 25px 50px -12px rgba(139, 92, 246, 0.1);
+}
+
+.dark .signup-card {
+  background-color: rgba(20, 20, 20, 0.8);
+}
+
+.signup-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Header */
+.signup-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  text-align: center;
+}
+
+.signup-title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.signup-subtitle {
+  font-size: 0.875rem;
+  color: var(--color-muted-foreground);
+}
+
+/* Form */
+.signup-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* Input */
+.input-wrapper {
+  position: relative;
+}
+
+.input-icon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 1.25rem;
+  width: 1.25rem;
+  color: var(--color-muted-foreground);
+  pointer-events: none;
+}
+
+.form-input {
+  width: 100%;
+  height: 2.75rem;
+  padding-left: 2.5rem;
+  padding-right: 0.75rem;
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  border-radius: 0.5rem;
+  background-color: transparent;
+  font-size: 0.875rem;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.form-input:focus {
+  border-color: #7c3aed;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+}
+
+.form-input::placeholder {
+  color: var(--color-muted-foreground);
+}
+
+/* Button */
+.submit-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  height: 2.75rem;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 0.5rem;
+  background: linear-gradient(to right, #7c3aed, #2563eb);
+  color: white;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 10px 15px -3px rgba(139, 92, 246, 0.25);
+  transition: all 0.2s;
+}
+
+.submit-button:hover {
+  background: linear-gradient(to right, #6d28d9, #1d4ed8);
+  transform: translateY(-1px);
+}
+
+.button-icon {
+  height: 1.25rem;
+  width: 1.25rem;
+}
+
+/* Divider */
+.divider-wrapper {
+  position: relative;
+  margin: 0.5rem 0;
+}
+
+.divider-line {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+}
+
+.divider-line::before {
+  content: '';
+  width: 100%;
+  border-top: 1px solid var(--color-border);
+}
+
+.divider-text {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  background-color: var(--color-card);
+  padding: 0 0.5rem;
+  color: var(--color-muted-foreground);
+}
+
+/* Google Button */
+.google-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  height: 2.75rem;
+  padding: 0.75rem 1.5rem;
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  border-radius: 0.5rem;
+  background-color: transparent;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.google-button:hover {
+  background-color: rgba(139, 92, 246, 0.05);
+}
+
+.google-icon {
+  height: 1.25rem;
+  width: 1.25rem;
+}
+
+/* Footer */
+.signup-footer {
+  text-align: center;
+  font-size: 0.875rem;
+}
+
+.footer-text {
+  color: var(--color-muted-foreground);
+}
+
+.footer-link {
+  font-weight: 600;
+  color: #7c3aed;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.footer-link:hover {
+  color: #6d28d9;
+}
+
+/* Terms */
+.signup-terms {
+  margin-top: 1.5rem;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--color-muted-foreground);
+  line-height: 1.5;
+}
+
+.terms-link {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.terms-link:hover {
+  color: var(--color-foreground);
+}
+
+/* Animations */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}

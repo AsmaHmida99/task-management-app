@@ -1,0 +1,16 @@
+# Build output
+target
+
+# IDE
+.idea
+*.iml
+
+# Logs
+*.log
+
+# Git & Docker
+.git
+.gitignore
+Dockerfile*
+README.md
+.env

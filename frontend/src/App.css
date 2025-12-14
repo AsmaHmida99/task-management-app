@@ -1,0 +1,54 @@
+/* ===============================
+   VARIABLES GLOBALES
+================================ */
+
+:root {
+  --color-background: #ffffff;
+  --color-foreground: #0f172a;
+
+  --color-card: rgba(255, 255, 255, 0.85);
+  --color-border: rgba(139, 92, 246, 0.15);
+
+  --color-muted-foreground: #64748b;
+}
+
+.dark {
+  --color-background: #020617;
+  --color-foreground: #e5e7eb;
+
+  --color-card: rgba(15, 23, 42, 0.85);
+  --color-border: rgba(139, 92, 246, 0.3);
+
+  --color-muted-foreground: #94a3b8;
+}
+
+/* ===============================
+   RESET + BASE
+================================ */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* ===============================
+   UTILS
+================================ */
+
+.icon {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.icon-sm {
+  width: 1.25rem;
+  height: 1.25rem;
+}
