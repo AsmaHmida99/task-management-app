@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, ArrowRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import Header from '../../components/header/header';
 import './signIn.css';
 
@@ -42,7 +42,6 @@ export default function SignInPage() {
                     Email
                   </label>
                   <div className="input-wrapper">
-                    <Mail className="input-icon" />
                     <input
                       id="email"
                       type="email"
@@ -65,7 +64,6 @@ export default function SignInPage() {
                     </Link>
                   </div>
                   <div className="input-wrapper">
-                    <Lock className="input-icon" />
                     <input
                       id="password"
                       type="password"

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Mail, Lock, User, ArrowRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import Header from '../../components/header/header';
 import './signUp.css';
 
@@ -45,7 +45,6 @@ export default function SignUpPage() {
                 <div className="form-group">
                   <label htmlFor="name" className="form-label">Nom complet</label>
                   <div className="input-wrapper">
-                    <User className="input-icon" />
                     <input
                       id="name"
                       type="text"
@@ -63,7 +62,6 @@ export default function SignUpPage() {
                 <div className="form-group">
                   <label htmlFor="email" className="form-label">Email</label>
                   <div className="input-wrapper">
-                    <Mail className="input-icon" />
                     <input
                       id="email"
                       type="email"
@@ -81,7 +79,6 @@ export default function SignUpPage() {
                 <div className="form-group">
                   <label htmlFor="password" className="form-label">Mot de passe</label>
                   <div className="input-wrapper">
-                    <Lock className="input-icon" />
                     <input
                       id="password"
                       type="password"
@@ -101,7 +98,6 @@ export default function SignUpPage() {
                     Confirmer le mot de passe
                   </label>
                   <div className="input-wrapper">
-                    <Lock className="input-icon" />
                     <input
                       id="confirmPassword"
                       type="password"

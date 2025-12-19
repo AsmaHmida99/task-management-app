@@ -3,7 +3,7 @@ import { Target, Moon, Sun } from 'lucide-react';
 import { useTheme } from '../../hooks/useTheme';
 import './header.css';
 
-export default function Header({ showSignUp = false }) {
+export default function Header({ showSignUp = false, showLogout = false, onLogout }) {
   const { isDark, toggleTheme } = useTheme();
 
   return (
@@ -26,6 +26,16 @@ export default function Header({ showSignUp = false }) {
               Sign Up
             </Link>
           )}
+
+          {showLogout && (
+  <button
+    onClick={onLogout}
+    className="header-signup-button"
+    type="button"
+  >
+    Log out
+  </button>
+)}
         </div>
       </div>
     </header>
