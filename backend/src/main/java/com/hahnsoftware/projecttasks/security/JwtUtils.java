@@ -24,20 +24,19 @@ public class JwtUtils {
     private int jwtExpirationMs;
 
     private Key getSigningKey() {
-        // Validation basique: le secret ne doit pas être null ou vide
+       
         if (jwtSecret == null || jwtSecret.isEmpty()) {
             logger.error("JWT secret is null or empty.");
             throw new IllegalArgumentException("JWT secret must not be null or empty. Please set JWT_SECRET in your environment variables.");
         }
         
-        // Avertissement si le secret est trop court (mais on continue pour le développement)
+       
         if (jwtSecret.length() < 32) {
             logger.warn("JWT secret is too short ({} characters). For production, use at least 32 characters for HS256.", jwtSecret.length());
         }
         
         try {
-            // Utiliser directement le secret, même s'il est court
-            // La bibliothèque JWT gérera le padding si nécessaire
+           
             return Keys.hmacShaKeyFor(jwtSecret.getBytes());
         } catch (Exception e) {
             logger.error("Error creating signing key from JWT secret: {}", e.getMessage());

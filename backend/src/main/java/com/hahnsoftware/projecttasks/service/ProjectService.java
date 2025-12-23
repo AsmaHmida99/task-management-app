@@ -24,10 +24,6 @@ public class ProjectService {
         this.userService = userService;
     }
 
-    /**
-     * Récupère tous les projets de l'utilisateur connecté
-     * @return Liste des projets sous forme de DTO
-     */
     @Transactional(readOnly = true)
     public List<ProjectResponseDTO> getAllProjects() {
         User currentUser = userService.getCurrentUser();
@@ -37,11 +33,6 @@ public class ProjectService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Crée un nouveau projet pour l'utilisateur connecté
-     * @param request Requête de création de projet
-     * @return Le projet créé sous forme de DTO
-     */
     @Transactional
     public ProjectResponseDTO createProject(CreateProjectRequest request) {
         User currentUser = userService.getCurrentUser();
@@ -55,12 +46,6 @@ public class ProjectService {
         return mapToDTO(savedProject);
     }
 
-    /**
-     * Récupère un projet par son ID
-     * @param id ID du projet
-     * @return Le projet sous forme de DTO
-     * @throws RuntimeException si le projet n'existe pas ou si l'utilisateur n'y a pas accès
-     */
     @Transactional(readOnly = true)
     public ProjectResponseDTO getProjectById(Long id) {
         User currentUser = userService.getCurrentUser();
@@ -70,13 +55,6 @@ public class ProjectService {
         return mapToDTO(project);
     }
 
-    /**
-     * Met à jour un projet existant
-     * @param id ID du projet à mettre à jour
-     * @param request Requête de mise à jour
-     * @return Le projet mis à jour sous forme de DTO
-     * @throws RuntimeException si le projet n'existe pas ou si l'utilisateur n'y a pas accès
-     */
     @Transactional
     public ProjectResponseDTO updateProject(Long id, UpdateProjectRequest request) {
         User currentUser = userService.getCurrentUser();
@@ -91,11 +69,6 @@ public class ProjectService {
         return mapToDTO(updatedProject);
     }
 
-    /**
-     * Supprime un projet
-     * @param id ID du projet à supprimer
-     * @throws RuntimeException si le projet n'existe pas ou si l'utilisateur n'y a pas accès
-     */
     @Transactional
     public void deleteProject(Long id) {
         User currentUser = userService.getCurrentUser();
@@ -106,15 +79,13 @@ public class ProjectService {
         projectRepository.delete(project);
     }
 
-    /**
-     * Convertit un Project en ProjectResponseDTO
-     * @param project Le projet à convertir
-     * @return Le DTO correspondant
-     */
     private ProjectResponseDTO mapToDTO(Project project) {
         int taskCount = project.getTasks() != null ? project.getTasks().size() : 0;
-        int completedTaskCount = project.getTasks() != null ?
-                (int) project.getTasks().stream().filter(task -> Boolean.TRUE.equals(task.getCompleted())).count() : 0;
+        int completedTaskCount = project.getTasks() != null
+                ? (int) project.getTasks().stream()
+                    .filter(task -> Boolean.TRUE.equals(task.getCompleted()))
+                    .count()
+                : 0;
 
         return new ProjectResponseDTO(
                 project.getId(),

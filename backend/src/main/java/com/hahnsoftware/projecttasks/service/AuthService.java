@@ -36,15 +36,13 @@ public class AuthService {
         this.jwtUtils = jwtUtils;
     }
 
-    /**
-     * Authentifie un utilisateur et génère un token JWT
-     * @param loginRequest Requête de connexion contenant email et mot de passe
-     * @return JwtResponse contenant le token et les informations utilisateur
-     * @throws org.springframework.security.core.AuthenticationException si les credentials sont invalides
-     */
     public JwtResponse login(LoginRequest loginRequest) {
         Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
+                new UsernamePasswordAuthenticationToken(
+                        loginRequest.getEmail(),
+                        loginRequest.getPassword()
+                )
+        );
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String jwt = jwtUtils.generateToken(authentication);
@@ -54,24 +52,24 @@ public class AuthService {
                 .map(item -> item.getAuthority())
                 .collect(Collectors.toList());
 
-        return new JwtResponse(jwt, userDetails.getId(), userDetails.getEmail(), roles);
+        return new JwtResponse(
+                jwt,
+                userDetails.getId(),
+                userDetails.getEmail(),
+                roles
+        );
     }
 
-    /**
-     * Inscrit un nouvel utilisateur
-     * @param signUpRequest Requête d'inscription contenant email et mot de passe
-     * @throws IllegalArgumentException si l'email existe déjà
-     */
     @Transactional
     public void register(SignupRequest signUpRequest) {
-        // Vérifier si l'email existe déjà
         if (userRepository.existsByEmail(signUpRequest.getEmail())) {
             throw new IllegalArgumentException("Error: Email is already in use!");
         }
 
-        // Créer le nouvel utilisateur
-        User user = new User(signUpRequest.getEmail(),
-                encoder.encode(signUpRequest.getPassword()));
+        User user = new User(
+                signUpRequest.getEmail(),
+                encoder.encode(signUpRequest.getPassword())
+        );
 
         userRepository.save(user);
     }

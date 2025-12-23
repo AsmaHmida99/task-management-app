@@ -6,8 +6,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
-import java.time.LocalDate;
-
 @Entity
 @Table(name = "tasks")
 @Data
@@ -22,8 +20,6 @@ public class Task {
     private String title;
 
     private String description;
-
-    private LocalDate dueDate;
 
     @Column(nullable = false)
     private Boolean completed = false;

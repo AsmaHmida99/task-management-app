@@ -68,7 +68,7 @@ public class GlobalExceptionHandler {
             errors.put(fieldName, errorMessage);
         });
 
-        // Construire un message d'erreur global à partir des erreurs de validation
+       
         String globalMessage = "Validation failed: ";
         if (!errors.isEmpty()) {
             globalMessage += String.join(", ", errors.values());
