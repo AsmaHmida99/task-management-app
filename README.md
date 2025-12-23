@@ -13,7 +13,6 @@ This project is a full-stack task management application that allows users to ma
 - [Conception](#conception)
 - [Technical Stack](#technical-stack)
 - [Getting Started](#getting-started)
-- [Environment Variables](#environment-variables)
 - [Demo Video](#demo-video)
 
 ---
@@ -27,16 +26,13 @@ This project is a full-stack task management application that allows users to ma
 - All API endpoints (except login/register) are protected  
 
 ### 2. Project Management
-- Create a project (title required, description optional)  
+- Create a project 
 - List all user projects  
 - View project details  
-- Update and delete projects (full CRUD)  
+- Update and delete projects 
 
 ### 3. Task Management
-- Create tasks with:
-  - title  
-  - description  
-  - due date  
+- Create tasks 
 - Mark tasks as completed  
 - Delete tasks  
 - List all tasks belonging to a project  
@@ -121,19 +117,20 @@ The class diagram represents the core domain model of the application and the re
 - Docker and Docker Compose  
 - Git  
 
-### Step 1: Clone the Repository
+
 ```bash
-git clone <your-repository-url>
+Step 1: Clone the Repository
+git clone https://github.com/AsmaHmida99/task-management-app.git
 cd task-management-app
 
 Step 2: Environment Variables Configuration
-bash
+
 cp .env.example .env
 
 Edit the .env file and set your own values (database credentials, JWT secret, etc.).
 
 Step 3: Run the Application with Docker
-bash
+
 docker-compose up --build
 
 Application URLs
