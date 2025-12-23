@@ -1,17 +1,20 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useNavigate } from "react-router-dom"
 import { Plus, Trash2, Edit2, Folder, CheckCircle2, Circle, ChevronRight } from "lucide-react"
 import Header from "../../components/header/header"
+import { useAuth } from "../../context/AuthContext"
+import { projectService, taskService } from "../../services"
 import "./project.css"
 
 
 const ProjectPage = () => {
-  const [projects, setProjects] = useState(() => {
-    const saved = localStorage.getItem("projects")
-    return saved ? JSON.parse(saved) : []
-  })
+  const navigate = useNavigate()
+  const { logout } = useAuth()
 
+  const [projects, setProjects] = useState([])
+  const [loading, setLoading] = useState(true)
   const [selectedProject, setSelectedProject] = useState(null)
   const [showProjectDialog, setShowProjectDialog] = useState(false)
   const [showTaskDialog, setShowTaskDialog] = useState(false)
@@ -25,97 +28,233 @@ const ProjectPage = () => {
   const [projectForm, setProjectForm] = useState({ title: "", description: "" })
   const [taskForm, setTaskForm] = useState({ title: "", description: "" })
 
+  // Charger les projets depuis le backend au montage
   useEffect(() => {
-    localStorage.setItem("projects", JSON.stringify(projects))
-  }, [projects])
+    loadProjects()
+  }, [])
+
+  // Charger les tâches quand on sélectionne un projet
+  useEffect(() => {
+    if (selectedProject) {
+      loadTasks(selectedProject.id)
+    }
+  }, [selectedProject?.id])
+
+  const loadProjects = async () => {
+    try {
+      setLoading(true)
+      const data = await projectService.getAllProjects()
+      setProjects(data)
+    } catch (error) {
+      console.error('Error loading projects:', error)
+      alert(error.message || 'Failed to load projects')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const loadTasks = async (projectId) => {
+    try {
+      const tasks = await taskService.getAllTasks(projectId)
+      setProjects(prevProjects =>
+        prevProjects.map(p =>
+          p.id === projectId ? { ...p, tasks } : p
+        )
+      )
+      // Mettre à jour le projet sélectionné avec les tâches
+      setSelectedProject(prev => {
+        if (prev?.id === projectId) {
+          return { ...prev, tasks }
+        }
+        return prev
+      })
+    } catch (error) {
+      console.error('Error loading tasks:', error)
+    }
+  }
 
   const getProgress = (projectId) => {
     const project = projects.find((p) => p.id === projectId)
-    if (!project || project.tasks.length === 0) return 0
-    const completed = project.tasks.filter((t) => t.completed).length
-    return Math.round((completed / project.tasks.length) * 100)
+    if (!project) return 0
+    const totalTasks = project.taskCount || 0
+    const completedTasks = project.completedTaskCount || 0
+    if (totalTasks === 0) return 0
+    return Math.round((completedTasks / totalTasks) * 100)
   }
 
-  const createProject = () => {
-    const newProject = {
-      id: Date.now().toString(),
-      title: projectForm.title,
-      description: projectForm.description,
-      tasks: [],
+  const createProject = async () => {
+    try {
+      const newProject = await projectService.createProject(projectForm)
+      setProjects([...projects, { ...newProject, tasks: [] }])
+      setProjectForm({ title: "", description: "" })
+      setShowProjectDialog(false)
+    } catch (error) {
+      console.error('Error creating project:', error)
+      alert(error.message || 'Failed to create project')
     }
-    setProjects([...projects, newProject])
-    setProjectForm({ title: "", description: "" })
-    setShowProjectDialog(false)
   }
 
-  const updateProject = () => {
+  const updateProject = async () => {
     if (!editingProject) return
-    setProjects(
-      projects.map((p) =>
-        p.id === editingProject.id ? { ...p, title: projectForm.title, description: projectForm.description } : p,
-      ),
-    )
-    setProjectForm({ title: "", description: "" })
-    setEditingProject(null)
-    setShowProjectDialog(false)
-  }
-
-  const deleteProject = (id) => {
-    setProjects(projects.filter((p) => p.id !== id))
-    if (selectedProject?.id === id) setSelectedProject(null)
-  }
-
-  const addTask = () => {
-    if (!selectedProject) return
-    const newTask = {
-      id: Date.now().toString(),
-      title: taskForm.title,
-      description: taskForm.description,
-      completed: false,
+    try {
+      const updated = await projectService.updateProject(editingProject.id, projectForm)
+      setProjects(projects.map((p) => (p.id === editingProject.id ? { ...p, ...updated } : p)))
+      if (selectedProject?.id === editingProject.id) {
+        setSelectedProject({ ...selectedProject, ...updated })
+      }
+      setProjectForm({ title: "", description: "" })
+      setEditingProject(null)
+      setShowProjectDialog(false)
+    } catch (error) {
+      console.error('Error updating project:', error)
+      alert(error.message || 'Failed to update project')
     }
-    setProjects(projects.map((p) => (p.id === selectedProject.id ? { ...p, tasks: [...p.tasks, newTask] } : p)))
-    setTaskForm({ title: "", description: "" })
-    setShowTaskDialog(false)
   }
 
-  const updateTask = () => {
+  const deleteProject = async (id) => {
+    try {
+      await projectService.deleteProject(id)
+      setProjects(projects.filter((p) => p.id !== id))
+      if (selectedProject?.id === id) setSelectedProject(null)
+    } catch (error) {
+      console.error('Error deleting project:', error)
+      alert(error.message || 'Failed to delete project')
+    }
+  }
+
+  const addTask = async () => {
+    if (!selectedProject) return
+    try {
+      const newTask = await taskService.createTask(selectedProject.id, taskForm)
+
+      // Recharger d'abord tous les projets pour avoir les compteurs à jour
+      const updatedProjects = await projectService.getAllProjects()
+
+      // Recharger les tâches du projet actuel
+      const updatedTasks = await taskService.getAllTasks(selectedProject.id)
+
+      // Mettre à jour l'état des projets avec les nouvelles tâches
+      const projectsWithTasks = updatedProjects.map(p => {
+        if (p.id === selectedProject.id) {
+          return { ...p, tasks: updatedTasks }
+        }
+        return p
+      })
+
+      setProjects(projectsWithTasks)
+
+      // Mettre à jour le projet sélectionné avec les nouvelles tâches
+      setSelectedProject(prev => ({
+        ...prev,
+        tasks: updatedTasks
+      }))
+
+      setTaskForm({ title: "", description: "" })
+      setShowTaskDialog(false)
+    } catch (error) {
+      console.error('Error creating task:', error)
+      alert(error.message || 'Failed to create task')
+    }
+  }
+
+  const updateTask = async () => {
     if (!selectedProject || !editingTask) return
-    setProjects(
-      projects.map((p) =>
-        p.id === selectedProject.id
-          ? {
-              ...p,
-              tasks: p.tasks.map((t) =>
-                t.id === editingTask.id ? { ...t, title: taskForm.title, description: taskForm.description } : t,
-              ),
-            }
-          : p,
-      ),
-    )
-    setTaskForm({ title: "", description: "" })
-    setEditingTask(null)
-    setShowTaskDialog(false)
+    try {
+      await taskService.updateTask(selectedProject.id, editingTask.id, taskForm)
+
+      // Recharger d'abord tous les projets pour avoir les compteurs à jour
+      const updatedProjects = await projectService.getAllProjects()
+
+      // Recharger les tâches du projet actuel
+      const updatedTasks = await taskService.getAllTasks(selectedProject.id)
+
+      // Mettre à jour l'état des projets avec les nouvelles tâches
+      const projectsWithTasks = updatedProjects.map(p => {
+        if (p.id === selectedProject.id) {
+          return { ...p, tasks: updatedTasks }
+        }
+        return p
+      })
+
+      setProjects(projectsWithTasks)
+
+      // Mettre à jour le projet sélectionné avec les nouvelles tâches
+      setSelectedProject(prev => ({
+        ...prev,
+        tasks: updatedTasks
+      }))
+
+      setTaskForm({ title: "", description: "" })
+      setEditingTask(null)
+      setShowTaskDialog(false)
+    } catch (error) {
+      console.error('Error updating task:', error)
+      alert(error.message || 'Failed to update task')
+    }
   }
 
-  const toggleTask = (taskId) => {
+  const toggleTask = async (task) => {
     if (!selectedProject) return
-    setProjects(
-      projects.map((p) =>
-        p.id === selectedProject.id
-          ? {
-              ...p,
-              tasks: p.tasks.map((t) => (t.id === taskId ? { ...t, completed: !t.completed } : t)),
-            }
-          : p,
-      ),
-    )
+    try {
+      await taskService.toggleTaskCompletion(selectedProject.id, task.id, task)
+
+      // Recharger d'abord tous les projets pour avoir les compteurs à jour
+      const updatedProjects = await projectService.getAllProjects()
+
+      // Recharger les tâches du projet actuel
+      const updatedTasks = await taskService.getAllTasks(selectedProject.id)
+
+      // Mettre à jour l'état des projets avec les nouvelles tâches
+      const projectsWithTasks = updatedProjects.map(p => {
+        if (p.id === selectedProject.id) {
+          return { ...p, tasks: updatedTasks }
+        }
+        return p
+      })
+
+      setProjects(projectsWithTasks)
+
+      // Mettre à jour le projet sélectionné avec les nouvelles tâches
+      setSelectedProject(prev => ({
+        ...prev,
+        tasks: updatedTasks
+      }))
+    } catch (error) {
+      console.error('Error toggling task:', error)
+      alert(error.message || 'Failed to toggle task')
+    }
   }
 
-  const deleteTask = (taskId) => {
+  const deleteTask = async (taskId) => {
     if (!selectedProject) return
-    setProjects(
-      projects.map((p) => (p.id === selectedProject.id ? { ...p, tasks: p.tasks.filter((t) => t.id !== taskId) } : p)),
-    )
+    try {
+      await taskService.deleteTask(selectedProject.id, taskId)
+
+      // Recharger d'abord tous les projets pour avoir les compteurs à jour
+      const updatedProjects = await projectService.getAllProjects()
+
+      // Recharger les tâches du projet actuel
+      const updatedTasks = await taskService.getAllTasks(selectedProject.id)
+
+      // Mettre à jour l'état des projets avec les nouvelles tâches
+      const projectsWithTasks = updatedProjects.map(p => {
+        if (p.id === selectedProject.id) {
+          return { ...p, tasks: updatedTasks }
+        }
+        return p
+      })
+
+      setProjects(projectsWithTasks)
+
+      // Mettre à jour le projet sélectionné avec les nouvelles tâches
+      setSelectedProject(prev => ({
+        ...prev,
+        tasks: updatedTasks
+      }))
+    } catch (error) {
+      console.error('Error deleting task:', error)
+      alert(error.message || 'Failed to delete task')
+    }
   }
 
   const confirmDelete = () => {
@@ -145,16 +284,27 @@ const ProjectPage = () => {
 
   const openEditTask = (task) => {
     setEditingTask(task)
-    setTaskForm({ title: task.title, description: task.description })
+    setTaskForm({ title: task.title, description: task.description || "" })
     setShowTaskDialog(true)
   }
 
   const handleLogout = () => {
-    
-    console.log("Logout")
+    logout()
+    navigate("/signin")
   }
 
-  const currentProject = projects.find((p) => p.id === selectedProject?.id)
+  const currentProject = selectedProject || projects.find((p) => p.id === selectedProject?.id)
+
+  if (loading) {
+    return (
+      <div className="app-container">
+        <Header showLogout={true} onLogout={handleLogout} />
+        <div className="empty-state">
+          <p className="empty-text">Loading projects...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="app-container">
@@ -164,7 +314,7 @@ const ProjectPage = () => {
         <div className="header-content">
           <div className="header-left">
             {selectedProject && (
-              <button onClick={() => setSelectedProject(null)} className="back-button" title="Back to projects">
+              <button type="button" onClick={() => setSelectedProject(null)} className="back-button" title="Back to projects">
                 <ChevronRight className="icon-rotate" />
               </button>
             )}
@@ -175,7 +325,7 @@ const ProjectPage = () => {
                   <>
                     <CheckCircle2 className="icon-small" />
                     <span>
-                      {currentProject?.tasks.filter((t) => t.completed).length}/{currentProject?.tasks.length || 0}{" "}
+                      {currentProject?.tasks?.filter((t) => t.completed).length || 0}/{currentProject?.tasks?.length || 0}{" "}
                       tasks
                     </span>
                   </>
@@ -190,6 +340,7 @@ const ProjectPage = () => {
           </div>
           <div className="header-actions">
             <button
+              type="button"
               onClick={() => {
                 if (selectedProject) {
                   setTaskForm({ title: "", description: "" })
@@ -209,7 +360,7 @@ const ProjectPage = () => {
           </div>
         </div>
       </div>
-   
+
       <main className="main-content">
         {selectedProject && currentProject && (
           <div className="progress-card">
@@ -217,7 +368,7 @@ const ProjectPage = () => {
               <div className="progress-info">
                   <h2 className="progress-title">Overall Progress</h2>
                 <p className="progress-subtitle">
-                  {currentProject.tasks.filter((t) => t.completed).length} out of {currentProject.tasks.length} tasks
+                  {currentProject.tasks?.filter((t) => t.completed).length || 0} out of {currentProject.tasks?.length || 0} tasks
                 </p>
               </div>
               <div className="progress-percentage">
@@ -237,6 +388,7 @@ const ProjectPage = () => {
               <h3 className="empty-title">No projects yet</h3>
               <p className="empty-text">Start by creating your first project</p>
               <button
+                type="button"
                 onClick={() => {
                   setProjectForm({ title: "", description: "" })
                   setShowProjectDialog(true)
@@ -251,17 +403,21 @@ const ProjectPage = () => {
             <div className="projects-grid">
               {projects.map((project) => {
                 const progress = getProgress(project.id)
-                const completedTasks = project.tasks.filter((t) => t.completed).length
+                const completedTasks = project.completedTaskCount || 0
+                const totalTasks = project.taskCount || 0
 
                 return (
-                  <div key={project.id} className="project-card" onClick={() => setSelectedProject(project)}>
+                  <div key={project.id} className="project-card" onClick={() => {
+                    setSelectedProject(project)
+                    loadTasks(project.id)
+                  }}>
                     <div className="project-card-header">
                       <div className="project-info">
                         <h3 className="project-title">{project.title}</h3>
                         <p className="project-tasks">
                           <CheckCircle2 className="icon-small" />
                           <span>
-                            {project.tasks.length} task{project.tasks.length > 1 ? "s" : ""}
+                            {totalTasks} task{totalTasks > 1 ? "s" : ""}
                           </span>
                         </p>
                       </div>
@@ -274,7 +430,7 @@ const ProjectPage = () => {
                       <div className="progress-label">
                         <span>Progress</span>
                         <span className="progress-count">
-                          {completedTasks}/{project.tasks.length}
+                          {completedTasks}/{totalTasks}
                         </span>
                       </div>
                       <div className="progress-bar-container">
@@ -287,6 +443,7 @@ const ProjectPage = () => {
 
                     <div className="project-actions">
                       <button
+                        type="button"
                         onClick={(e) => {
                           e.stopPropagation()
                           openEditProject(project)
@@ -297,6 +454,7 @@ const ProjectPage = () => {
                         <span>Edit</span>
                       </button>
                       <button
+                        type="button"
                         onClick={(e) => {
                           e.stopPropagation()
                           setDeleteType('project')
@@ -316,7 +474,7 @@ const ProjectPage = () => {
           )
         ) : (
           <div className="tasks-container">
-            {currentProject?.tasks.length === 0 ? (
+            {(!currentProject?.tasks || currentProject.tasks.length === 0) ? (
               <div className="empty-state">
                 <div className="empty-icon">
                   <CheckCircle2 className="icon-large" />
@@ -324,6 +482,7 @@ const ProjectPage = () => {
                 <h3 className="empty-title">No tasks yet</h3>
                 <p className="empty-text">Start by creating your first task for this project</p>
                 <button
+                  type="button"
                   onClick={() => {
                     setTaskForm({ title: "", description: "" })
                     setShowTaskDialog(true)
@@ -336,10 +495,10 @@ const ProjectPage = () => {
               </div>
             ) : (
               <div className="tasks-list">
-                {currentProject?.tasks.map((task) => (
+                {currentProject.tasks.map((task) => (
                   <div key={task.id} className={`task-card ${task.completed ? "completed" : ""}`}>
                     <div className="task-content">
-                      <button onClick={() => toggleTask(task.id)} className="task-checkbox">
+                      <button type="button" onClick={() => toggleTask(task)} className="task-checkbox">
                         {task.completed ? (
                           <CheckCircle2 className="icon-checked" />
                         ) : (
@@ -357,10 +516,11 @@ const ProjectPage = () => {
                       </div>
 
                       <div className="task-actions">
-                        <button onClick={() => openEditTask(task)} className="task-action-button" title="Edit">
+                        <button type="button" onClick={() => openEditTask(task)} className="task-action-button" title="Edit">
                           <Edit2 className="icon-small" />
                         </button>
                         <button
+                          type="button"
                           onClick={() => {
                             setDeleteType('task')
                             setDeleteId(task.id)
@@ -382,7 +542,7 @@ const ProjectPage = () => {
         )}
       </main>
 
-     
+
       {showProjectDialog && (
         <div className="dialog-overlay">
           <div className="dialog">
@@ -419,6 +579,7 @@ const ProjectPage = () => {
 
             <div className="dialog-actions">
               <button
+                type="button"
                 onClick={() => {
                   setShowProjectDialog(false)
                   setEditingProject(null)
@@ -429,6 +590,7 @@ const ProjectPage = () => {
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={editingProject ? updateProject : createProject}
                 disabled={!projectForm.title.trim()}
                 className="primary-button"
@@ -440,7 +602,7 @@ const ProjectPage = () => {
         </div>
       )}
 
-    
+
       {showTaskDialog && (
         <div className="dialog-overlay">
           <div className="dialog">
@@ -479,6 +641,7 @@ const ProjectPage = () => {
 
             <div className="dialog-actions">
               <button
+                type="button"
                 onClick={() => {
                   setShowTaskDialog(false)
                   setEditingTask(null)
@@ -489,6 +652,7 @@ const ProjectPage = () => {
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={editingTask ? updateTask : addTask}
                 disabled={!taskForm.title.trim()}
                 className="primary-button"
@@ -500,7 +664,7 @@ const ProjectPage = () => {
         </div>
       )}
 
-    
+
       {showDeleteModal && (
         <div className="dialog-overlay">
           <div className="dialog">
@@ -518,10 +682,10 @@ const ProjectPage = () => {
             </div>
 
             <div className="dialog-actions">
-              <button onClick={cancelDelete} className="secondary-button">
+              <button type="button" onClick={cancelDelete} className="secondary-button">
                 Cancel
               </button>
-              <button onClick={confirmDelete} className="delete-confirm-button">
+              <button type="button" onClick={confirmDelete} className="delete-confirm-button">
                 OK
               </button>
             </div>

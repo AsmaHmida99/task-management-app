@@ -1,65 +1,32 @@
 package com.hahnsoftware.projecttasks.controller;
 
-import com.hahnsoftware.projecttasks.dto.LoginRequest;
 import com.hahnsoftware.projecttasks.dto.JwtResponse;
+import com.hahnsoftware.projecttasks.dto.LoginRequest;
 import com.hahnsoftware.projecttasks.dto.SignupRequest;
-import com.hahnsoftware.projecttasks.model.User;
-import com.hahnsoftware.projecttasks.repository.UserRepository;
-import com.hahnsoftware.projecttasks.security.JwtUtils;
-import com.hahnsoftware.projecttasks.security.UserDetailsImpl;
+import com.hahnsoftware.projecttasks.service.AuthService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
 
-    private final AuthenticationManager authenticationManager;
-    private final UserRepository userRepository;
-    private final PasswordEncoder encoder;
-    private final JwtUtils jwtUtils;
+    private final AuthService authService;
 
-    public AuthController(AuthenticationManager authenticationManager,
-                          UserRepository userRepository,
-                          PasswordEncoder encoder,
-                          JwtUtils jwtUtils) {
-        this.authenticationManager = authenticationManager;
-        this.userRepository = userRepository;
-        this.encoder = encoder;
-        this.jwtUtils = jwtUtils;
+    public AuthController(AuthService authService) {
+        this.authService = authService;
     }
 
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
         try {
-            Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
-
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-            String jwt = jwtUtils.generateToken(authentication);
-
-            UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-            List<String> roles = userDetails.getAuthorities().stream()
-                    .map(item -> item.getAuthority())
-                    .collect(Collectors.toList());
-
-            return ResponseEntity.ok(new JwtResponse(jwt,
-                                                     userDetails.getId(),
-                                                     userDetails.getEmail(),
-                                                     roles));
+            JwtResponse response = authService.login(loginRequest);
+            return ResponseEntity.ok(response);
         } catch (org.springframework.security.core.AuthenticationException e) {
             Map<String, String> error = new HashMap<>();
             error.put("message", "Invalid email or password");
@@ -74,29 +41,20 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {
         try {
-            // Vérifier si l'email existe déjà
-            if (userRepository.existsByEmail(signUpRequest.getEmail())) {
-                Map<String, String> error = new HashMap<>();
-                error.put("message", "Error: Email is already in use!");
-                return ResponseEntity.badRequest().body(error);
-            }
-
-            // Créer le nouvel utilisateur
-            User user = new User(signUpRequest.getEmail(),
-                                 encoder.encode(signUpRequest.getPassword()));
-
-            userRepository.save(user);
+            authService.register(signUpRequest);
 
             Map<String, String> response = new HashMap<>();
             response.put("message", "User registered successfully!");
             return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
         } catch (org.springframework.dao.DataIntegrityViolationException e) {
-            // Gérer les violations d'intégrité (email dupliqué, etc.)
             Map<String, String> error = new HashMap<>();
             error.put("message", "Error: Email is already in use!");
             return ResponseEntity.badRequest().body(error);
         } catch (Exception e) {
-            // Gérer toutes les autres exceptions
             Map<String, String> error = new HashMap<>();
             error.put("message", "Registration failed: " + e.getMessage());
             return ResponseEntity.status(500).body(error);
