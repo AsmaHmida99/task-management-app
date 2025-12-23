@@ -12,32 +12,34 @@ This project is a full-stack task management application that allows users to ma
 - [Non-Functional Requirements](#non-functional-requirements)
 - [Conception](#conception)
 - [Technical Stack](#technical-stack)
-- [Getting Started](#getting-started)
 - [Demo Video](#demo-video)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Steps to Run](#steps-to-run)
 
 ---
 
 ## Functional Requirements
 
-### 1. Authentication
+### Authentication
 - Login using email and password  
 - JWT-based authentication  
 - Secure token generation  
 - All API endpoints (except login/register) are protected  
 
-### 2. Project Management
-- Create a project 
+### Project Management
+- Create a project  
 - List all user projects  
 - View project details  
-- Update and delete projects 
+- Update and delete projects  
 
-### 3. Task Management
-- Create tasks 
+### Task Management
+- Create tasks  
 - Mark tasks as completed  
 - Delete tasks  
 - List all tasks belonging to a project  
 
-### 4. Project Progress Tracking
+### Project Progress Tracking
 - Automatic calculation of:
   - total tasks  
   - completed tasks  
@@ -48,24 +50,24 @@ This project is a full-stack task management application that allows users to ma
 
 ## Non-Functional Requirements
 
-### 1. Security
+### Security
 - JWT authentication with expiration  
 - Password encryption using BCrypt  
 - Input validation using `@Valid`  
 - Secure configuration using environment variables  
 
-### 2. Performance
+### Performance
 - Optimized database queries with Spring Data JPA  
 - Lazy loading of project tasks  
 - Fast frontend build with Vite  
 
-### 3. User Experience
+### User Experience
 - Responsive UI (mobile and desktop)  
 - Light and dark theme support  
 - Clear error messages and user feedback  
 - Smooth UI transitions  
 
-### 4. Maintainability
+### Maintainability
 - Clean layered architecture (Controller / Service / Repository)  
 - Reusable React components  
 - Dockerized deployment for consistency  
@@ -111,28 +113,35 @@ The class diagram represents the core domain model of the application and the re
 
 ---
 
+## Demo Video
+
+🎥 **Application Demo**  
+https://drive.google.com/drive/folders/1wSS1ANEZYncF2Lf3TYXc3WYjeXiNsSMI?usp=sharing
+
+---
+
 ## Getting Started
 
 ### Prerequisites
 - Docker and Docker Compose  
 - Git  
 
+### Steps to Run
 
 ```bash
-Step 1: Clone the Repository
+# Step 1: Clone the Repository
 git clone https://github.com/AsmaHmida99/task-management-app.git
 cd task-management-app
 
-Step 2: Environment Variables Configuration
-
+# Step 2: Environment Variables Configuration
 cp .env.example .env
 
-Edit the .env file and set your own values (database credentials, JWT secret, etc.).
+# Edit the .env file and set your own values (database credentials, JWT secret, etc.).
 
-Step 3: Run the Application with Docker
-
+# Step 3: Run the Application with Docker
 docker-compose up --build
 
+
 Application URLs
-Frontend: [http://localhost:3000]
-Backend API: [http://localhost:8080]
+Frontend: http://localhost:3000
+Backend API: http://localhost:8080
